@@ -4,15 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFF8ED">
 <title>Send a Birthday Wish</title>
 <meta name="description" content="Write a birthday wish for a little one in Little Chapters. No app or account needed.">
 <meta property="og:title" content="Send a birthday wish 🎂">
-<meta property="og:description" content="Write a birthday wish in Little Chapters. No app or account needed.">
+<meta property="og:description" content="Write a birthday letter in Little Chapters. No app or account needed.">
 <meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Great+Vibes&display=swap">
 <style>
   :root {
     --bg: #FFF8ED;
-    --surface: #FFFCF8;
+    --bg-deep: #F6EBDA;
+    --glass: rgba(255, 251, 244, 0.8);
+    --glass-line: rgba(255, 255, 255, 0.9);
     --text: #20332A;
     --muted: #55625B;
     --line: #E6DDCF;
@@ -21,12 +27,25 @@
     --accent-soft: #DFE6E2;
     --danger: #9B3B2E;
     --danger-soft: #FBEDE9;
-    --shadow: 0 12px 32px rgba(32, 51, 42, 0.10);
+    --paper: #FFFCF2;
+    --paper-back: #F2EAD8;
+    --paper-edge: rgba(120, 98, 60, 0.2);
+    --margin-line: rgba(208, 96, 96, 0.42);
+    --note: #FFF5CC;
+    --letters-opacity: 0.62;
+    --stage: rgba(255, 248, 237, 0.86);
+    --shadow: 0 18px 44px rgba(60, 46, 26, 0.12);
+    --display: "Fraunces", Georgia, "Times New Roman", serif;
+    --hand: "Caveat", "Noteworthy", "Bradley Hand", "Segoe Print", cursive;
+    --script: "Great Vibes", "Snell Roundhand", "Apple Chancery", cursive;
+    --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #141A17;
-      --surface: #1C2420;
+      --bg-deep: #0F1412;
+      --glass: rgba(28, 36, 32, 0.82);
+      --glass-line: rgba(255, 255, 255, 0.08);
       --text: #ECE7DE;
       --muted: #AEB8B1;
       --line: #2E3A33;
@@ -35,7 +54,9 @@
       --accent-soft: #233229;
       --danger: #F0A898;
       --danger-soft: #3A2622;
-      --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      --letters-opacity: 0.3;
+      --stage: rgba(16, 21, 19, 0.9);
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.4);
     }
   }
   * { box-sizing: border-box; }
@@ -43,139 +64,288 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--bg);
+    background: radial-gradient(120% 80% at 50% 0%, var(--bg) 40%, var(--bg-deep) 100%) fixed, var(--bg);
     color: var(--text);
-    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font: 17px/1.55 var(--ui);
+    overflow-x: hidden;
   }
-  main { max-width: 560px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 48px; }
-  .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 650; letter-spacing: -0.02em; font-size: 18px; }
-  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 32px; line-height: 1.2; margin: 28px 0 8px; letter-spacing: -0.01em; }
-  .lead { color: var(--muted); margin: 0 0 24px; }
-  .hero-emoji { font-size: 44px; line-height: 1; margin-top: 28px; }
-  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 20px; box-shadow: var(--shadow); }
-  label { display: block; font-weight: 600; font-size: 15px; margin: 0 0 8px; }
-  .field { margin-bottom: 20px; }
-  input[type=text], textarea {
-    width: 100%;
-    font: inherit;
-    color: var(--text);
-    background: var(--bg);
-    border: 1.5px solid var(--line);
-    border-radius: 16px;
-    padding: 14px 16px;
-    outline: none;
-    transition: border-color .15s;
+  body.is-sending { overflow: hidden; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .letters { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: var(--letters-opacity); }
+  .bg-letter { position: absolute; animation: drift var(--d) ease-in-out var(--delay) infinite alternate; will-change: transform; }
+  .bg-letter > div { animation: land .9s cubic-bezier(.2, .8, .2, 1) var(--in) both; }
+  .letters.settled .bg-letter > div { animation: none; }
+  .bg-letter svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 14px rgba(60, 46, 26, 0.14)); }
+  .bg-letter.far { filter: blur(1.4px); }
+  .bg-letter.far > div > div { opacity: .7; }
+  @keyframes drift { from { transform: translate(0, 0); } to { transform: translate(var(--dx), var(--dy)); } }
+  @keyframes land { from { opacity: 0; transform: translateY(-18px) scale(.94); } to { opacity: 1; transform: none; } }
+
+  main { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px max(40px, env(safe-area-inset-bottom)); }
+  .brand { display: flex; justify-content: center; align-items: center; gap: 8px; color: var(--accent); font-weight: 650; letter-spacing: -0.02em; font-size: 17px; margin-bottom: 18px; }
+  .brand-mark { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.15);
+    border: 1px solid var(--glass-line);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
   }
-  input[type=text]:focus, textarea:focus { border-color: var(--accent); }
-  textarea { min-height: 150px; resize: vertical; }
-  .hint { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; margin-top: 6px; }
-  .ideas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  .hero { position: relative; text-align: center; padding: 26px 22px 24px; overflow: hidden; }
+  .hero-art { position: relative; width: 150px; height: 104px; margin: 0 auto 10px; }
+  .hero-avatar {
+    position: absolute; left: 50%; top: 14px; width: 80px; height: 80px; margin-left: -40px;
+    display: grid; place-items: center; border-radius: 50%;
+    font: 600 36px/1 var(--display); color: #3E5F78;
+    background: linear-gradient(160deg, #EAF2F7, #AFC9DC);
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.85), 0 12px 26px rgba(62, 95, 120, 0.25);
+  }
+  .hero-balloon { position: absolute; animation: bob 3.6s ease-in-out infinite alternate; }
+  .hero-balloon.one { left: 0; top: 0; animation-delay: -1.2s; }
+  .hero-balloon.two { right: 2px; top: 10px; }
+  .hero-balloon.three { right: 26px; top: -6px; animation-delay: -2.4s; }
+  @keyframes bob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-8px) rotate(4deg); } }
+  .eyebrow { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 999px; background: #FBF3DD; color: #7A5B1E; font-size: 13px; font-weight: 600; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: 31px; line-height: 1.15; margin: 12px 0 8px; letter-spacing: -0.015em; color: var(--text); }
+  .lead { color: var(--muted); margin: 0 auto; max-width: 30em; font-size: 16px; }
+
+  .step { margin-top: 16px; padding: 20px 16px 18px; }
+  .step-head { display: flex; align-items: center; gap: 10px; margin: 0 4px 14px; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-size: 14px; font-weight: 700; flex: none; }
+  h2 { margin: 0; font: 600 19px/1.25 var(--display); letter-spacing: -0.01em; }
+  .ideas-label { margin: 0 4px 8px; color: var(--muted); font-size: 14px; }
+  .ideas { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 20px 14px; scrollbar-width: none; }
+  .ideas::-webkit-scrollbar { display: none; }
   .chip {
-    font: inherit; font-size: 14px; color: var(--text);
+    flex: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--text);
     background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
-    padding: 8px 14px; cursor: pointer;
+    padding: 8px 14px; cursor: pointer; transition: transform .15s, background .15s;
   }
-  .chip:active { transform: scale(.97); }
-  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .card-option { position: relative; }
-  .card-option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .card-face {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    padding: 12px 4px; border-radius: 16px; border: 2px solid transparent;
-    font-size: 13px; font-weight: 600; text-align: center;
+  .chip:active { transform: scale(.96); }
+  .chip.is-picked { background: var(--accent-soft); border-color: var(--accent); }
+
+  .paper {
+    --ink: #3E5F78; --fill: #AFC9DC; --soft: #EAF2F7; --rule: rgba(62, 95, 120, 0.17);
+    position: relative; color: var(--ink);
+    background: radial-gradient(140% 90% at 0% 0%, #FFFFFF 0%, var(--paper) 55%), var(--paper);
+    border: 1px solid var(--paper-edge); border-radius: 6px;
+    padding: 18px 18px 18px 50px;
+    box-shadow: 0 1px 0 rgba(120, 98, 60, 0.08), 0 16px 34px rgba(60, 46, 26, 0.16);
+    transition: box-shadow .2s, color .3s;
   }
-  .card-face .emoji { font-size: 26px; line-height: 1.1; }
-  .card-option input:checked + .card-face { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .card-option input:focus-visible + .card-face { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .theme-balloons { background: linear-gradient(150deg, #EAF2F7, #AFC9DC73); color: #3E5F78; }
-  .theme-cake { background: linear-gradient(150deg, #FBF0E6, #EFC6A073); color: #7F5530; }
-  .theme-stars { background: linear-gradient(150deg, #F1EDF6, #C7BADB73); color: #5B4B78; }
-  .theme-hearts { background: linear-gradient(150deg, #FBEDE9, #E9B8AC73); color: #874A3E; }
+  .paper::before { content: ""; position: absolute; left: 34px; top: 0; bottom: 0; width: 1.5px; background: var(--margin-line); }
+  .paper:focus-within { box-shadow: 0 1px 0 rgba(120, 98, 60, 0.08), 0 16px 34px rgba(60, 46, 26, 0.16), 0 0 0 3px color-mix(in srgb, var(--fill) 70%, transparent); }
+  .paper-decor { position: absolute; right: 14px; bottom: 14px; opacity: .55; transform: rotate(10deg); pointer-events: none; }
+  .paper-date { margin: 0 0 2px; text-align: right; font: 500 20px/1.2 var(--hand); opacity: .75; }
+  .paper-greeting { margin: 0 0 2px; font: 36px/1.25 var(--script); }
+  .paper-body, .paper textarea {
+    display: block; width: 100%; margin: 0; padding: 0; border: 0; outline: 0; resize: none;
+    font: 500 23px/32px var(--hand); color: var(--ink);
+    background: transparent repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px);
+    background-attachment: local;
+    min-height: 160px; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .paper-body { min-height: 96px; }
+  .paper textarea::placeholder { color: var(--ink); opacity: .42; }
+  .counter { margin: 4px 0 0; text-align: right; font-size: 12px; font-family: var(--ui); opacity: .7; }
+  .paper-signoff { margin: 14px 0 0; font: 500 22px/1.2 var(--hand); }
+  .paper-name, .paper-signature {
+    display: block; width: 100%; margin: 0; padding: 2px 0 4px; border: 0; outline: 0; background: transparent;
+    border-bottom: 1.5px dashed var(--rule); color: var(--ink); font: 34px/1.3 var(--script);
+  }
+  .paper-signature { border-bottom: 0; padding-right: 56px; }
+  .paper-name::placeholder { color: var(--ink); opacity: .38; }
+  .paper-name:focus { border-bottom-color: var(--ink); }
+  .paper-hint { margin: 6px 0 0; padding-right: 48px; font: 13px/1.4 var(--ui); opacity: .7; }
+
+  .envelopes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .envelope-option { position: relative; display: block; cursor: pointer; text-align: center; }
+  .envelope-option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .envelope-option .art { display: block; padding: 8px 4px 4px; border-radius: 16px; transition: transform .25s cubic-bezier(.2, .8, .2, 1), background .2s; }
+  .envelope-option svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 5px 8px rgba(60, 46, 26, 0.16)); }
+  .envelope-option .name { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .envelope-option input:checked + .art { transform: translateY(-4px) rotate(-4deg) scale(1.04); background: var(--accent-soft); }
+  .envelope-option input:checked ~ .name { color: var(--accent); }
+  .envelope-option input:focus-visible + .art { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .actions { margin-top: 18px; }
   button.primary {
-    width: 100%; font: inherit; font-weight: 650; font-size: 17px;
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    font: inherit; font-weight: 650; font-size: 17px;
     color: var(--accent-ink); background: var(--accent);
     border: 0; border-radius: 999px; padding: 16px; cursor: pointer;
-    box-shadow: 0 8px 20px rgba(40, 89, 67, 0.25);
+    box-shadow: 0 10px 24px rgba(40, 89, 67, 0.28); transition: transform .15s;
   }
-  button.primary[disabled] { opacity: .55; cursor: default; box-shadow: none; }
-  button.link { font: inherit; color: var(--accent); background: none; border: 0; padding: 12px; cursor: pointer; text-decoration: underline; width: 100%; }
-  .error { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; font-size: 15px; margin-bottom: 16px; }
-  .letter { border-radius: 20px; padding: 20px; margin: 0 0 20px; }
-  .letter .to { font-weight: 650; margin: 0 0 8px; }
-  .letter .body { white-space: pre-wrap; margin: 0 0 12px; }
-  .letter .from { font-style: italic; margin: 0; }
-  .reply { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 14px; padding: 14px 16px; margin: 0 0 20px; }
-  .reply strong { display: block; margin-bottom: 4px; }
-  .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 24px; }
+  button.primary:active { transform: scale(.98); }
+  button.primary[disabled] { opacity: .6; cursor: default; box-shadow: none; }
+  button.link { display: block; font: inherit; font-weight: 600; color: var(--accent); background: none; border: 0; padding: 14px; margin: 6px auto 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .error { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; font-size: 15px; margin-top: 16px; }
+
+  .sent-head { text-align: center; padding: 26px 20px 22px; }
+  .sent-envelope { width: min(300px, 84%); margin: 0 auto 6px; transform: rotate(-3deg); }
+  .sent-envelope svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 22px rgba(60, 46, 26, 0.2)); }
+  .sent-paper { margin-top: 16px; }
+  .reply-note {
+    position: relative; margin: 26px 12px 0; padding: 22px 18px 16px; background: var(--note); color: #5C4A1E;
+    border-radius: 4px; transform: rotate(1.4deg); box-shadow: 0 10px 22px rgba(13, 24, 19, 0.2);
+  }
+  .reply-note::before { content: ""; position: absolute; top: -11px; left: 50%; width: 92px; height: 24px; margin-left: -46px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); transform: rotate(-3deg); }
+  .reply-note strong { display: block; font: 600 15px/1.3 var(--ui); margin-bottom: 4px; }
+  .reply-note p { margin: 0; font: 500 22px/1.35 var(--hand); white-space: pre-wrap; }
+  .enter > * { animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+  .enter > *:nth-child(2) { animation-delay: .12s; }
+  .enter > *:nth-child(3) { animation-delay: .24s; }
+  .enter > *:nth-child(4) { animation-delay: .36s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+  .message-card { text-align: center; padding: 30px 22px 28px; }
+  .message-art { position: relative; width: 170px; margin: 0 auto 6px; transform: rotate(-5deg); }
+  .message-art svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 12px 18px rgba(60, 46, 26, 0.18)); }
+  .message-badge { position: absolute; right: -14px; top: -14px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; background: var(--glass); box-shadow: 0 6px 14px rgba(60, 46, 26, 0.16); transform: rotate(5deg); }
+
+  .loading { display: grid; place-items: center; gap: 14px; padding: 90px 0; color: var(--muted); font-size: 15px; }
+  .loading svg { width: 120px; height: auto; animation: bob 1.4s ease-in-out infinite alternate; filter: drop-shadow(0 12px 16px rgba(60, 46, 26, 0.18)); }
+  .note { color: var(--muted); font-size: 13px; text-align: center; margin: 22px auto 0; max-width: 28em; }
   .note a { color: var(--accent); }
-  .center { text-align: center; }
-  .spinner { width: 32px; height: 32px; margin: 96px auto; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+
+  .stage { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; background: var(--stage); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); overflow: hidden; }
+  .stage-target { display: flex; flex-direction: column; align-items: center; gap: 20px; opacity: 0; }
+  .stage-avatar { position: relative; width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; font: 600 32px/1 var(--display); box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9), 0 12px 26px rgba(60, 46, 26, 0.22); }
+  .stage-avatar::after { content: ""; position: absolute; inset: -12px; border-radius: 50%; border: 2px dashed currentColor; opacity: .3; animation: spin 14s linear infinite; }
+  .stage-to { margin: 0; font: 34px/1.1 var(--script); color: var(--text); }
+  .stage-caption { margin: 22px 0 0; min-height: 1.6em; font: 500 24px/1.3 var(--hand); color: var(--muted); text-align: center; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .flyer { position: relative; width: var(--w); height: var(--h); flex: none; opacity: 0; }
+  .env-inside { position: absolute; inset: 0; z-index: 1; border-radius: 9px; box-shadow: inset 0 10px 18px rgba(0, 0, 0, 0.12); }
+  .env-flap { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--h) * .56); z-index: 1; transform-origin: 50% 0; transform: perspective(900px) rotateX(180deg); transform-style: preserve-3d; }
+  .flap-face { position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+  .flap-face svg { display: block; width: 100%; height: 100%; }
+  .flap-face.in { transform: rotateX(180deg); }
+  .mini { position: absolute; z-index: 2; left: calc(var(--w) * .07); width: calc(var(--w) * .86); height: var(--l); top: calc(var(--h) * .25 - var(--l)); transform-style: preserve-3d; perspective: 1400px; }
+  .fold { position: absolute; left: 0; width: 100%; height: calc(var(--l) / 3); transform-style: preserve-3d; }
+  .fold.top { top: 0; transform-origin: 50% 100%; }
+  .fold.mid { top: calc(var(--l) / 3); }
+  .fold.bot { top: calc(var(--l) * 2 / 3); transform-origin: 50% 0; }
+  .face { position: absolute; inset: 0; overflow: hidden; -webkit-backface-visibility: hidden; backface-visibility: hidden; background: var(--paper); }
+  .face.back { transform: rotateX(180deg); background: linear-gradient(180deg, var(--paper-back), #EDE3CD); box-shadow: inset 0 0 0 1px rgba(120, 98, 60, 0.14), inset 0 -6px 10px rgba(120, 98, 60, 0.08); }
+  .fold.top .face.front { border-radius: 4px 4px 0 0; }
+  .fold.bot .face.front { border-radius: 0 0 4px 4px; box-shadow: 0 10px 20px rgba(60, 46, 26, 0.12); }
+  .mini-sheet { position: absolute; left: 0; width: 100%; padding: calc(var(--u) * 14px) calc(var(--u) * 14px) 0 calc(var(--u) * 36px); display: flex; flex-direction: column; }
+  .mini-sheet::before { content: ""; position: absolute; left: calc(var(--u) * 24px); top: 0; bottom: 0; width: 1px; background: var(--margin-line); }
+  .mini-date { margin: 0; text-align: right; font: 500 calc(var(--u) * 14px)/1.2 var(--hand); opacity: .7; }
+  .mini-greeting { margin: 0; font: calc(var(--u) * 26px)/1.25 var(--script); }
+  .mini-body { margin: 0; flex: 1; overflow: hidden; font: 500 calc(var(--u) * 16px)/calc(var(--u) * 22px) var(--hand); white-space: pre-wrap; overflow-wrap: anywhere; background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--u) * 21px), var(--rule) calc(var(--u) * 21px) calc(var(--u) * 22px)); }
+  .mini-sign { margin: calc(var(--u) * 6px) 0 0; font: 500 calc(var(--u) * 15px)/1.2 var(--hand); }
+  .mini-name { margin: 0 0 calc(var(--u) * 16px); font: calc(var(--u) * 26px)/1.2 var(--script); }
+  .env-pocket { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  .env-pocket svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 -2px 3px rgba(0, 0, 0, 0.06)); }
+  .env-seal { position: absolute; z-index: 5; left: 50%; width: var(--s); height: var(--s); margin-left: calc(var(--s) / -2); top: calc(var(--h) * .56 - var(--s) * .62); border-radius: 50%; display: grid; place-items: center; transform: scale(0); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), inset 0 -3px 6px rgba(0, 0, 0, 0.2), inset 0 3px 5px rgba(255, 255, 255, 0.25); }
+  .env-seal::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.35); }
+  .spark { position: absolute; z-index: 11; pointer-events: none; font-size: 18px; line-height: 1; }
+
   @media (max-width: 359px) {
-    .panel { padding: 16px; }
-    .cards { grid-template-columns: repeat(2, 1fr); }
-    h1 { font-size: 28px; }
+    .envelopes { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 27px; }
+    .paper { padding-left: 44px; }
+    .paper::before { left: 30px; }
   }
-  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    .bg-letter, .bg-letter > div, .hero-balloon, .loading svg, .enter > *, .stage-avatar::after { animation: none !important; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Little Chapters</div>
+<div class="letters" id="letters" aria-hidden="true"></div>
 
-  <div id="loading" class="spinner" role="status" aria-label="Loading"></div>
+<main>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg></span>
+    Little Chapters
+  </div>
+
+  <div id="loading" class="loading" role="status">
+    <span id="loading-art" aria-hidden="true"></span>
+    <span>Opening your invitation…</span>
+  </div>
 
   <section id="state-message" hidden>
-    <div class="hero-emoji" id="message-emoji" aria-hidden="true">🎂</div>
-    <h1 id="message-title"></h1>
-    <p class="lead" id="message-body"></p>
+    <div class="glass message-card enter">
+      <div class="message-art" aria-hidden="true"><span id="message-art"></span><span class="message-badge" id="message-emoji"></span></div>
+      <h1 id="message-title"></h1>
+      <p class="lead" id="message-body"></p>
+    </div>
   </section>
 
   <section id="state-form" hidden>
-    <div class="hero-emoji" aria-hidden="true">🎂</div>
-    <h1 id="form-title"></h1>
-    <p class="lead" id="form-lead"></p>
-    <form id="wish-form" class="panel" novalidate>
-      <div id="form-error" class="error" role="alert" hidden></div>
-      <div class="field">
-        <label for="name">Your name</label>
-        <input id="name" type="text" maxlength="40" autocomplete="given-name" placeholder="e.g. Aunt Sara" required>
-        <div class="hint"><span>How the family will see you.</span></div>
+    <header class="glass hero">
+      <div class="hero-art" aria-hidden="true">
+        <span class="hero-balloon one" id="balloon-one"></span>
+        <span class="hero-balloon three" id="balloon-three"></span>
+        <span class="hero-balloon two" id="balloon-two"></span>
+        <span class="hero-avatar" id="hero-avatar"></span>
       </div>
-      <div class="field">
-        <label for="message">Your wish</label>
-        <textarea id="message" maxlength="500" required></textarea>
-        <div class="hint"><span>Need an idea? Tap one below.</span><span id="counter">0 / 500</span></div>
-        <div class="ideas" id="ideas"></div>
-      </div>
-      <div class="field">
-        <label id="card-label">Pick a card</label>
-        <div class="cards" role="radiogroup" aria-labelledby="card-label">
-          <label class="card-option"><input type="radio" name="card" value="balloons" checked><span class="card-face theme-balloons"><span class="emoji" aria-hidden="true">🎈</span>Balloons</span></label>
-          <label class="card-option"><input type="radio" name="card" value="cake"><span class="card-face theme-cake"><span class="emoji" aria-hidden="true">🎂</span>Cake</span></label>
-          <label class="card-option"><input type="radio" name="card" value="stars"><span class="card-face theme-stars"><span class="emoji" aria-hidden="true">⭐</span>Stars</span></label>
-          <label class="card-option"><input type="radio" name="card" value="hearts"><span class="card-face theme-hearts"><span class="emoji" aria-hidden="true">💗</span>Hearts</span></label>
+      <span class="eyebrow" id="eyebrow"></span>
+      <h1 id="form-title"></h1>
+      <p class="lead" id="form-lead"></p>
+    </header>
+
+    <form id="wish-form" novalidate>
+      <div class="glass step">
+        <div class="step-head"><span class="step-num" aria-hidden="true">1</span><h2>Write your letter</h2></div>
+        <p class="ideas-label" id="ideas-label">Need words? Tap one to start</p>
+        <div class="ideas" id="ideas" role="group" aria-labelledby="ideas-label"></div>
+        <div class="paper" id="paper">
+          <span class="paper-decor" id="paper-decor" aria-hidden="true"></span>
+          <p class="paper-date" id="paper-date"></p>
+          <p class="paper-greeting" id="paper-greeting"></p>
+          <label class="sr-only" for="message">Your wish</label>
+          <textarea id="message" rows="5" maxlength="500" placeholder="Write your wish here…" required></textarea>
+          <p class="counter" id="counter" hidden></p>
+          <p class="paper-signoff">With love,</p>
+          <label class="sr-only" for="name">Your name</label>
+          <input id="name" class="paper-name" type="text" maxlength="40" autocomplete="given-name" placeholder="Your name" required>
+          <p class="paper-hint">How the family will see you, like Aunt Sara or Nana.</p>
         </div>
       </div>
-      <button class="primary" id="send" type="submit">Send my wish</button>
+
+      <div class="glass step">
+        <div class="step-head"><span class="step-num" aria-hidden="true">2</span><h2 id="card-label">Choose an envelope</h2></div>
+        <div class="envelopes" id="envelopes" role="radiogroup" aria-labelledby="card-label"></div>
+      </div>
+
+      <div id="form-error" class="error" role="alert" hidden></div>
+      <div class="actions">
+        <button class="primary" id="send" type="submit"></button>
+      </div>
     </form>
   </section>
 
   <section id="state-sent" hidden>
-    <div class="hero-emoji" aria-hidden="true">💌</div>
-    <h1 id="sent-title">Your wish is on its way</h1>
-    <p class="lead" id="sent-lead"></p>
-    <div id="sent-letter" class="letter">
-      <p class="to" id="sent-to"></p>
-      <p class="body" id="sent-body"></p>
-      <p class="from" id="sent-from"></p>
+    <div class="enter">
+      <div class="glass sent-head">
+        <div class="sent-envelope" id="sent-envelope" aria-hidden="true"></div>
+        <h1 id="sent-title"></h1>
+        <p class="lead" id="sent-lead"></p>
+      </div>
+      <div class="paper sent-paper" id="sent-paper">
+        <span class="paper-decor" id="sent-decor" aria-hidden="true"></span>
+        <p class="paper-date" id="sent-date"></p>
+        <p class="paper-greeting" id="sent-greeting"></p>
+        <p class="paper-body" id="sent-body"></p>
+        <p class="paper-signoff">With love,</p>
+        <p class="paper-signature" id="sent-name"></p>
+      </div>
+      <div id="sent-reply" class="reply-note" hidden>
+        <strong id="sent-reply-title"></strong>
+        <p id="sent-reply-body"></p>
+      </div>
+      <div><button class="link" id="edit" type="button">Change my wish</button></div>
     </div>
-    <div id="sent-reply" class="reply" hidden>
-      <strong id="sent-reply-title"></strong>
-      <span id="sent-reply-body"></span>
-    </div>
-    <button class="link" id="edit" type="button">Change my wish</button>
   </section>
 
   <p class="note">Your name and wish are shared only with this child's family in Little Chapters. <a href="privacy_policy.html">Privacy policy</a></p>
@@ -187,13 +357,177 @@
   var KEY_STORE = 'lc-guest-key';
   var NAME_STORE = 'lc-guest-name';
   var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var CARDS = ['balloons', 'cake', 'stars', 'hearts'];
+  var PALETTES = {
+    balloons: { label: 'Balloons', fill: '#AFC9DC', soft: '#EAF2F7', ink: '#3E5F78' },
+    cake: { label: 'Cake', fill: '#EFC6A0', soft: '#FBF0E6', ink: '#7F5530' },
+    stars: { label: 'Stars', fill: '#C7BADB', soft: '#F1EDF6', ink: '#5B4B78' },
+    hearts: { label: 'Hearts', fill: '#E9B8AC', soft: '#FBEDE9', ink: '#874A3E' }
+  };
+  var ICONS = {
+    balloons: '<path d="M12 15.5c3.3 0 5.8-3 5.8-6.6a5.8 5.8 0 0 0-11.6 0c0 3.6 2.5 6.6 5.8 6.6z"/><path d="M11 17.4h2l-1-1.9z"/><path d="M12 17.4c0 1.8-1.6 2.3-.7 4.1"/>',
+    cake: '<path d="M4.5 20h15v-6.5a2 2 0 0 0-2-2h-11a2 2 0 0 0-2 2z"/><path d="M4.5 15.2c1.2.9 2.5.9 3.75 0s2.5-.9 3.75 0 2.5.9 3.75 0 2.5-.9 3.75 0"/><path d="M12 11.5V8"/><path d="M12 3.8c.9.9.9 2 0 2.8-.9-.8-.9-1.9 0-2.8z"/>',
+    stars: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+    hearts: '<path d="M12 19.5s-7.2-4.3-7.2-9.9A4.1 4.1 0 0 1 12 7a4.1 4.1 0 0 1 7.2 2.6c0 5.6-7.2 9.9-7.2 9.9z"/>'
+  };
 
   var link = new URLSearchParams(location.search).get('l') || '';
   var info = null;
   var isSending = false;
   var memoryStore = {};
+  var lettersWidth = 0;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var $ = function (id) { return document.getElementById(id); };
+
+  var esc = function (value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  };
+
+  var mix = function (from, to, amount) {
+    return '#' + [1, 3, 5].map(function (start) {
+      var value = Math.round(parseInt(from.slice(start, start + 2), 16) * (1 - amount) + parseInt(to.slice(start, start + 2), 16) * amount);
+      return value.toString(16).padStart(2, '0');
+    }).join('');
+  };
+
+  var themeOf = function (key) {
+    var palette = PALETTES[key] || PALETTES.balloons;
+    return {
+      key: PALETTES[key] ? key : 'balloons',
+      label: palette.label,
+      fill: palette.fill,
+      soft: palette.soft,
+      ink: palette.ink,
+      envelope: mix(palette.fill, palette.ink, 0.08),
+      inside: mix(palette.fill, palette.ink, 0.32),
+      flap: mix(palette.fill, palette.ink, 0.15),
+      pocket: mix(palette.fill, '#FFFFFF', 0.12),
+      seal: mix(palette.ink, '#000000', 0.08),
+      rule: palette.ink + '2B'
+    };
+  };
+
+  var iconSvg = function (key, color, size, attrs) {
+    return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="' + color + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ' + (attrs || '') + '>' + ICONS[key] + '</svg>';
+  };
+
+  var balloonArt = function (fill, ink, size) {
+    return '<svg viewBox="0 0 40 64" width="' + size + '" height="' + Math.round(size * 1.6) + '"><path d="M20 40c9.4 0 16-8.4 16-18.4C36 12 29 4 20 4S4 12 4 21.6C4 31.6 10.6 40 20 40z" fill="' + fill + '"/><path d="M12 14c2-4 5-6 8-6.5" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M17.5 43.5h5L20 39.6z" fill="' + fill + '"/><path d="M20 43.5c0 5-4 6.5-2 11.5s-1 6-1 8" stroke="' + ink + '" stroke-opacity=".5" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>';
+  };
+
+  var stampBites = function (x, y, w, h, color) {
+    var out = '';
+    var across = Math.round(w / 8.5);
+    var down = Math.round(h / 8.5);
+    for (var i = 0; i < across; i++) {
+      var cx = (x + (i + 0.5) * (w / across)).toFixed(1);
+      out += '<circle cx="' + cx + '" cy="' + y + '" r="2.8" fill="' + color + '"/><circle cx="' + cx + '" cy="' + (y + h) + '" r="2.8" fill="' + color + '"/>';
+    }
+    for (var j = 0; j < down; j++) {
+      var cy = (y + (j + 0.5) * (h / down)).toFixed(1);
+      out += '<circle cx="' + x + '" cy="' + cy + '" r="2.8" fill="' + color + '"/><circle cx="' + (x + w) + '" cy="' + cy + '" r="2.8" fill="' + color + '"/>';
+    }
+    return out;
+  };
+
+  var scriptSize = function (text, room, max) {
+    return Math.max(18, Math.min(max, Math.round(room / Math.max(1, text.length * 0.42))));
+  };
+
+  var envelopeFront = function (theme, options) {
+    var to = options.to || '';
+    var from = options.from || '';
+    var label = function (x, y, text) {
+      return '<text x="' + x + '" y="' + y + '" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="12" font-weight="600" letter-spacing="2.6" fill="' + theme.ink + '" fill-opacity=".62">' + text + '</text>';
+    };
+    var waves = [48, 60, 72].map(function (y) {
+      return '<path d="M146 ' + y + ' q9.75 -5 19.5 0 t19.5 0 t19.5 0 t19.5 0" fill="none" stroke="' + theme.ink + '" stroke-opacity=".38" stroke-width="1.6" stroke-linecap="round"/>';
+    }).join('');
+    return '<svg viewBox="0 0 340 218" xmlns="http://www.w3.org/2000/svg">' +
+      '<rect x="1" y="1" width="338" height="216" rx="10" fill="' + theme.envelope + '" stroke="' + theme.ink + '" stroke-opacity=".16"/>' +
+      '<rect x="9" y="9" width="322" height="200" rx="6" fill="none" stroke="#FFFFFF" stroke-opacity=".28"/>' +
+      label(24, 40, 'FROM') +
+      (from
+        ? '<text x="22" y="80" font-family="Great Vibes, Snell Roundhand, cursive" font-size="' + scriptSize(from, 150, 36) + '" fill="' + theme.ink + '" fill-opacity=".9">' + esc(from) + '</text>' +
+          (options.fromDetail ? '<text x="24" y="104" font-family="Caveat, Noteworthy, cursive" font-size="19" fill="' + theme.ink + '" fill-opacity=".7">' + esc(options.fromDetail) + '</text>' : '')
+        : '<path d="M26 68c7-11 14-12 18-4s10 8 15-2 13-8 17 0 12 5 22-5" fill="none" stroke="' + theme.ink + '" stroke-opacity=".45" stroke-width="2.6" stroke-linecap="round"/>') +
+      '<circle cx="250" cy="60" r="27" fill="none" stroke="' + theme.ink + '" stroke-opacity=".34" stroke-width="1.6"/>' +
+      '<circle cx="250" cy="60" r="20" fill="none" stroke="' + theme.ink + '" stroke-opacity=".22" stroke-width="1.2"/>' +
+      waves +
+      '<g transform="rotate(4 291 51)"><rect x="262" y="16" width="58" height="70" fill="#FFFDF7"/>' + stampBites(262, 16, 58, 70, theme.envelope) +
+      '<rect x="268" y="22" width="46" height="58" fill="' + theme.soft + '"/>' +
+      '<svg x="278" y="38" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="' + theme.ink + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + ICONS[theme.key] + '</svg></g>' +
+      label(150, 136, 'TO') +
+      (to
+        ? '<text x="148" y="178" font-family="Great Vibes, Snell Roundhand, cursive" font-size="' + scriptSize(to, 170, 44) + '" fill="' + theme.ink + '" fill-opacity=".88">' + esc(to) + '</text>'
+        : '<path d="M152 172c9-12 18-13 23-4s12 8 18-2 15-8 20 0 14 5 26-5" fill="none" stroke="' + theme.ink + '" stroke-opacity=".45" stroke-width="2.6" stroke-linecap="round"/>') +
+      '<path d="M150 192H318" stroke="' + theme.ink + '" stroke-opacity=".28" stroke-width="1.2"/>' +
+      (options.date
+        ? '<text x="150" y="211" font-family="Caveat, Noteworthy, cursive" font-size="18" fill="' + theme.ink + '" fill-opacity=".7">' + esc(options.date) + '</text>'
+        : '<path d="M150 208H270" stroke="' + theme.ink + '" stroke-opacity=".2" stroke-width="1.2"/>') +
+      '</svg>';
+  };
+
+  var envelopeBack = function (theme) {
+    return '<svg viewBox="0 0 340 218" xmlns="http://www.w3.org/2000/svg">' +
+      '<rect x="1" y="1" width="338" height="216" rx="10" fill="' + theme.envelope + '" stroke="' + theme.ink + '" stroke-opacity=".16"/>' +
+      '<path d="M4 214L170 126L336 214" fill="none" stroke="' + theme.ink + '" stroke-opacity=".2" stroke-width="1.5"/>' +
+      '<path d="M1 11Q1 1 11 1H329Q339 1 339 11L177 117Q170 123 163 117Z" fill="' + theme.flap + '" stroke="' + theme.ink + '" stroke-opacity=".16"/>' +
+      '<circle cx="170" cy="112" r="24" fill="' + theme.seal + '"/>' +
+      '<circle cx="170" cy="112" r="18" fill="none" stroke="#FFFFFF" stroke-opacity=".3" stroke-width="1.5"/>' +
+      '<svg x="157" y="99" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="' + theme.soft + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[theme.key] + '</svg>' +
+      '</svg>';
+  };
+
+  var seeded = function (text) {
+    var seed = 2166136261;
+    for (var i = 0; i < text.length; i++) {
+      seed = Math.imul(seed ^ text.charCodeAt(i), 16777619);
+    }
+    return function () {
+      seed = (seed + 0x6D2B79F5) | 0;
+      var value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+
+  var paintLetters = function (settled) {
+    var width = window.innerWidth;
+    var height = Math.max(window.innerHeight, (window.screen && window.screen.height) || 0);
+    lettersWidth = width;
+    var cell = width < 600 ? 150 : 210;
+    var cols = Math.ceil(width / cell) + 1;
+    var rows = Math.ceil(height / (cell * 0.8)) + 1;
+    var rand = seeded(link || 'little-chapters');
+    var to = info && info.childName ? info.childName : '';
+    var html = '';
+    var count = 0;
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        if (rand() < 0.14) {
+          continue;
+        }
+        var far = rand() < 0.3;
+        var size = cell * (far ? 0.62 + rand() * 0.18 : 0.82 + rand() * 0.34);
+        var x = (col + (row % 2 ? 0.5 : 0) - 0.55 + rand() * 0.45) * cell;
+        var y = (row - 0.45 + rand() * 0.4) * cell * 0.8;
+        var theme = themeOf(CARDS[Math.floor(rand() * CARDS.length)]);
+        var art = rand() < 0.36 ? envelopeBack(theme) : envelopeFront(theme, { to: to });
+        var style = 'left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px;width:' + size.toFixed(0) + 'px;' +
+          '--dx:' + ((rand() * 2 - 1) * 10).toFixed(1) + 'px;--dy:' + ((rand() * 2 - 1) * 14).toFixed(1) + 'px;' +
+          '--d:' + (8 + rand() * 8).toFixed(1) + 's;--delay:' + (-rand() * 10).toFixed(1) + 's;--in:' + (count * 0.035).toFixed(2) + 's;' +
+          'z-index:' + (far ? 0 : 1);
+        html += '<div class="bg-letter' + (far ? ' far' : '') + '" style="' + style + '"><div><div style="transform:rotate(' + ((rand() * 2 - 1) * 24).toFixed(1) + 'deg)">' + art + '</div></div></div>';
+        count++;
+      }
+    }
+    $('letters').classList.toggle('settled', Boolean(settled));
+    $('letters').innerHTML = html;
+  };
 
   var stored = function (key, value) {
     try {
@@ -231,6 +565,10 @@
     return dateOf(iso).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
   };
 
+  var todayLabel = function () {
+    return new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   var daysUntil = function (iso) {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -259,12 +597,26 @@
     return name + ' just turned ' + age + '!';
   };
 
+  var eyebrowOf = function (birthday) {
+    var days = daysUntil(birthday);
+    if (days === 0) {
+      return 'Birthday today';
+    }
+    if (days === 1) {
+      return 'Tomorrow';
+    }
+    if (days > 1) {
+      return 'In ' + days + ' days';
+    }
+    return days === -1 ? 'Yesterday' : (-days) + ' days ago';
+  };
+
   var ideasFor = function (name, age) {
     return [
       { label: 'Blessing', text: 'Happy ' + ordinal(age) + ' birthday, ' + name + '! May your heart always be full of joy, your days full of laughter and your life full of love. 🎂💛' },
-      { label: 'Best wishes', text: 'Dearest ' + name + ', wishing you the happiest of birthdays! May this year bring you good health, endless giggles and cuddles whenever you need them. 🎈' },
-      { label: 'God bless', text: 'Happy birthday, sweet ' + name + '! May God bless you with good health, a kind heart and a life full of happiness. 🙏✨' },
-      { label: 'Dreams', text: 'Happy birthday, ' + name + '! May all your little dreams grow big and come true. Sending you the biggest birthday hug. 🤗' }
+      { label: 'Best wishes', text: 'Wishing you the happiest of birthdays! May this year bring you good health, endless giggles and cuddles whenever you need them. 🎈' },
+      { label: 'God bless', text: 'May God bless you with good health, a kind heart and a life full of happiness. Happy birthday, sweet ' + name + '! 🙏✨' },
+      { label: 'Dreams', text: 'May all your little dreams grow big and come true. Sending you the biggest birthday hug. 🤗' }
     ];
   };
 
@@ -275,7 +627,10 @@
     window.scrollTo(0, 0);
   };
 
+  var MESSAGE_THEMES = { not_yet: 'balloons', closed: 'stars', off: 'hearts' };
+
   var showMessage = function (emoji, title, body) {
+    $('message-art').innerHTML = envelopeBack(themeOf(MESSAGE_THEMES[info && info.status] || 'cake'));
     $('message-emoji').textContent = emoji;
     $('message-title').textContent = title;
     $('message-body').textContent = body;
@@ -299,28 +654,75 @@
     return picked ? picked.value : 'balloons';
   };
 
+  var tintPaper = function (paper, decor, card) {
+    var theme = themeOf(card);
+    paper.style.setProperty('--ink', theme.ink);
+    paper.style.setProperty('--fill', theme.fill);
+    paper.style.setProperty('--soft', theme.soft);
+    paper.style.setProperty('--rule', theme.rule);
+    decor.innerHTML = iconSvg(theme.key, theme.fill, 46, 'stroke-width="1.5"');
+  };
+
   var setCard = function (card) {
     var input = document.querySelector('input[name=card][value="' + card + '"]');
     if (input) {
       input.checked = true;
     }
+    tintPaper($('paper'), $('paper-decor'), selectedCard());
+  };
+
+  var fitMessage = function () {
+    var box = $('message');
+    box.style.height = 'auto';
+    box.style.height = Math.max(160, Math.ceil(box.scrollHeight / 32) * 32) + 'px';
   };
 
   var updateCounter = function () {
-    $('counter').textContent = $('message').value.length + ' / 500';
+    var length = $('message').value.length;
+    $('counter').hidden = length < 400;
+    $('counter').textContent = length + ' / 500';
+    fitMessage();
+  };
+
+  var paintEnvelopes = function () {
+    $('envelopes').innerHTML = CARDS.map(function (card) {
+      var theme = themeOf(card);
+      return '<label class="envelope-option"><input type="radio" name="card" value="' + card + '"' + (card === 'balloons' ? ' checked' : '') + '>' +
+        '<span class="art" aria-hidden="true">' + envelopeBack(theme) + '</span><span class="name">' + theme.label + '</span></label>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=card]'), function (input) {
+      input.addEventListener('change', function () {
+        tintPaper($('paper'), $('paper-decor'), selectedCard());
+      });
+    });
+  };
+
+  var paintHero = function () {
+    $('hero-avatar').textContent = (info.childName || '?').trim().charAt(0).toUpperCase();
+    $('balloon-one').innerHTML = balloonArt('#E9B8AC', '#874A3E', 34);
+    $('balloon-two').innerHTML = balloonArt('#E3C989', '#7A5B1E', 30);
+    $('balloon-three').innerHTML = balloonArt('#C7BADB', '#5B4B78', 22);
+    $('eyebrow').innerHTML = iconSvg('cake', '#7A5B1E', 15) + '<span></span>';
+    $('eyebrow').lastChild.textContent = eyebrowOf(info.birthday);
+  };
+
+  var sendLabel = function (isEdit) {
+    return iconSvg('hearts', 'currentColor', 20) + '<span>' + (isEdit ? 'Seal &amp; save my letter' : 'Seal &amp; send my letter') + '</span>';
   };
 
   var showForm = function (wish) {
+    paintHero();
     $('form-title').textContent = turns(info.childName, info.age, info.birthday);
     $('form-lead').textContent = info.sharedBy && info.sharedBy !== 'Someone'
-      ? info.sharedBy + ' invited you to send ' + info.childName + ' a birthday wish. No app or account needed.'
-      : 'Send ' + info.childName + ' a birthday wish. No app or account needed.';
+      ? info.sharedBy + ' invited you to send ' + info.childName + ' a birthday letter. No app or account needed.'
+      : 'Send ' + info.childName + ' a birthday letter. No app or account needed.';
+    $('paper-date').textContent = todayLabel();
+    $('paper-greeting').textContent = 'Dear ' + info.childName + ',';
     $('name').value = wish ? wish.name : (stored(NAME_STORE) || '');
     $('message').value = wish ? wish.message : '';
     setCard(wish ? wish.card : 'balloons');
-    $('send').textContent = wish ? 'Save my wish' : 'Send my wish';
+    $('send').innerHTML = sendLabel(Boolean(wish));
     $('form-error').hidden = true;
-    updateCounter();
     var ideas = $('ideas');
     ideas.innerHTML = '';
     ideasFor(info.childName, info.age).forEach(function (idea) {
@@ -329,6 +731,7 @@
       chip.className = 'chip';
       chip.textContent = idea.label;
       chip.addEventListener('click', function () {
+        Array.prototype.forEach.call(ideas.children, function (other) { other.classList.toggle('is-picked', other === chip); });
         $('message').value = idea.text;
         updateCounter();
         $('message').focus();
@@ -336,18 +739,23 @@
       ideas.appendChild(chip);
     });
     show('state-form');
+    updateCounter();
   };
 
   var showSent = function (wish) {
-    $('sent-letter').className = 'letter theme-' + wish.card;
-    $('sent-to').textContent = 'Dear ' + info.childName + ',';
+    var theme = themeOf(wish.card);
+    $('sent-envelope').innerHTML = envelopeFront(theme, { from: wish.name, fromDetail: 'Via wish link', to: info.childName, date: todayLabel() });
+    $('sent-title').textContent = 'Your letter is on its way 💌';
+    $('sent-lead').textContent = info.childName + "'s family will open it in Little Chapters. Thank you for being part of the celebration!";
+    tintPaper($('sent-paper'), $('sent-decor'), wish.card);
+    $('sent-date').textContent = todayLabel();
+    $('sent-greeting').textContent = 'Dear ' + info.childName + ',';
     $('sent-body').textContent = wish.message;
-    $('sent-from').textContent = 'With love, ' + wish.name;
-    $('sent-lead').textContent = info.childName + "'s family will see it in Little Chapters. Thank you for being part of the celebration!";
+    $('sent-name').textContent = wish.name;
     var hasReply = Boolean(wish.reply);
     $('sent-reply').hidden = !hasReply;
     if (hasReply) {
-      $('sent-reply-title').textContent = 'A reply from ' + (info.sharedBy && info.sharedBy !== 'Someone' ? info.sharedBy : "the family") + ' 💛';
+      $('sent-reply-title').textContent = 'A reply from ' + (info.sharedBy && info.sharedBy !== 'Someone' ? info.sharedBy : 'the family') + ' 💛';
       $('sent-reply-body').textContent = wish.reply;
     }
     $('edit').hidden = hasReply || info.status !== 'open';
@@ -360,7 +768,7 @@
       case 'open':
         return info.myWish ? showSent(info.myWish) : showForm(null);
       case 'not_yet':
-        return showMessage('🎈', info.childName + "'s birthday is coming", 'Wishes open on ' + longDate(info.opensOn) + '. Keep this link and come back then to send your wish.');
+        return showMessage('🎈', info.childName + "'s birthday is coming", 'Wishes open on ' + longDate(info.opensOn) + '. Keep this link and come back then to send your letter.');
       case 'closed':
         return showMessage('🌙', 'Wishes are closed', 'Birthday wishes for ' + info.childName + ' are open for a week after the birthday. Thank you for thinking of them!');
       case 'off':
@@ -382,6 +790,170 @@
     }
   };
 
+  var wait = function (ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  };
+
+  var play = function (element, frames, duration, extra) {
+    return element.animate(frames, Object.assign({ duration: duration, easing: 'cubic-bezier(.22, .8, .24, 1)', fill: 'forwards' }, extra || {})).finished;
+  };
+
+  var miniSheet = function (index, letter, theme, length) {
+    return '<div class="mini-sheet" style="top:' + (-index * length / 3) + 'px;height:' + length + 'px;color:' + theme.ink + ';--rule:' + theme.rule + '">' +
+      '<p class="mini-date">' + esc(letter.date) + '</p>' +
+      '<p class="mini-greeting">Dear ' + esc(info.childName) + ',</p>' +
+      '<p class="mini-body">' + esc(letter.message) + '</p>' +
+      '<p class="mini-sign">With love,</p>' +
+      '<p class="mini-name">' + esc(letter.name) + '</p>' +
+      '</div>';
+  };
+
+  var buildStage = function (theme, letter) {
+    var width = Math.round(Math.max(180, Math.min(300, window.innerWidth - 64, (window.innerHeight - 250) / 1.5)));
+    var height = Math.round(width * 0.64);
+    var length = Math.round(width * 1.02);
+    var above = Math.round(length - height * 0.25);
+    var flapPath = 'M0 9Q0 0 9 0H331Q340 0 340 9L177 116Q170 123 163 116Z';
+    var stage = document.createElement('div');
+    stage.className = 'stage';
+    stage.setAttribute('aria-hidden', 'true');
+    stage.innerHTML =
+      '<div class="stage-target">' +
+        '<div class="stage-avatar" style="background:linear-gradient(160deg,' + theme.soft + ',' + theme.fill + ');color:' + theme.ink + '">' + esc((info.childName || '?').charAt(0).toUpperCase()) + '</div>' +
+        '<p class="stage-to">To ' + esc(info.childName) + '</p>' +
+      '</div>' +
+      '<div style="padding-top:' + (above + 16) + 'px">' +
+        '<div class="flyer" style="--w:' + width + 'px;--h:' + height + 'px;--l:' + length + 'px;--s:' + Math.round(width * 0.19) + 'px;--u:' + (width / 300).toFixed(3) + '">' +
+          '<div class="env-inside" style="background:' + theme.inside + '"></div>' +
+          '<div class="env-flap">' +
+            '<div class="flap-face out"><svg viewBox="0 0 340 122" preserveAspectRatio="none"><path d="' + flapPath + '" fill="' + theme.flap + '" stroke="' + theme.ink + '" stroke-opacity=".16"/></svg></div>' +
+            '<div class="flap-face in"><svg viewBox="0 0 340 122" preserveAspectRatio="none"><path transform="translate(0 122) scale(1 -1)" d="' + flapPath + '" fill="' + mix(theme.inside, '#FFFFFF', 0.12) + '"/></svg></div>' +
+          '</div>' +
+          '<div class="mini">' +
+            '<div class="fold top"><div class="face front">' + miniSheet(0, letter, theme, length) + '</div><div class="face back"></div></div>' +
+            '<div class="fold mid"><div class="face front">' + miniSheet(1, letter, theme, length) + '</div></div>' +
+            '<div class="fold bot"><div class="face front">' + miniSheet(2, letter, theme, length) + '</div><div class="face back"></div></div>' +
+          '</div>' +
+          '<div class="env-pocket"><svg viewBox="0 0 340 218" preserveAspectRatio="none">' +
+            '<path d="M0 9L170 112L340 9V208Q340 218 330 218H10Q0 218 0 208Z" fill="' + theme.pocket + '"/>' +
+            '<path d="M0 9L170 112L340 9" fill="none" stroke="' + theme.ink + '" stroke-opacity=".14" stroke-width="1.2"/>' +
+            '<path d="M4 214L170 132L336 214" fill="none" stroke="' + theme.ink + '" stroke-opacity=".16" stroke-width="1.2"/>' +
+          '</svg></div>' +
+          '<div class="env-seal" style="background:radial-gradient(circle at 35% 30%,' + mix(theme.seal, '#FFFFFF', 0.25) + ',' + theme.seal + ' 70%)">' + iconSvg(theme.key, theme.soft, Math.round(width * 0.085), 'stroke-width="2"') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="stage-caption"></p>';
+    document.body.appendChild(stage);
+    return { stage: stage, slide: Math.round(height * 0.92 - (height * 0.25 - length + length * 2 / 3)) };
+  };
+
+  var burst = function (stage, target, theme) {
+    var box = target.getBoundingClientRect();
+    var cx = box.left + box.width / 2;
+    var cy = box.top + box.height / 2;
+    var colors = [theme.fill, theme.ink, '#E3C989', '#E9B8AC'];
+    var shapes = ['♥', '✦', '•', '♥', '✧'];
+    for (var i = 0; i < 18; i++) {
+      var spark = document.createElement('span');
+      spark.className = 'spark';
+      spark.textContent = shapes[i % shapes.length];
+      spark.style.left = cx + 'px';
+      spark.style.top = cy + 'px';
+      spark.style.color = colors[i % colors.length];
+      stage.appendChild(spark);
+      var angle = (Math.PI * 2 * i) / 18 + Math.random() * 0.3;
+      var distance = 60 + Math.random() * 60;
+      play(spark, [
+        { transform: 'translate(-50%, -50%) scale(.4)', opacity: 1 },
+        { transform: 'translate(calc(-50% + ' + (Math.cos(angle) * distance).toFixed(0) + 'px), calc(-50% + ' + (Math.sin(angle) * distance).toFixed(0) + 'px)) scale(1.1)', opacity: 0 }
+      ], 900 + Math.random() * 400, { easing: 'cubic-bezier(.1, .7, .3, 1)' });
+    }
+  };
+
+  var sendAnimation = function (theme, letter, request) {
+    var built = buildStage(theme, letter);
+    var stage = built.stage;
+    var q = function (selector) { return stage.querySelector(selector); };
+    var flyer = q('.flyer');
+    var caption = function (text) { q('.stage-caption').textContent = text; };
+    var bob = null;
+    var result = null;
+    var fold = function (selector, angle, lift) {
+      return play(q(selector), [
+        { transform: 'rotateX(0deg) translateZ(0px)' },
+        { transform: 'rotateX(' + angle + 'deg) translateZ(' + lift + 'px)' }
+      ], 640, { easing: 'cubic-bezier(.55, 0, .3, 1)' });
+    };
+    document.body.classList.add('is-sending');
+    caption('Folding your letter…');
+    return play(stage, [{ opacity: 0 }, { opacity: 1 }], 300)
+      .then(function () {
+        play(q('.stage-target'), [{ opacity: 0, transform: 'translateY(-12px) scale(.9)' }, { opacity: 1, transform: 'none' }], 520);
+        return play(flyer, [{ opacity: 0, transform: 'translateY(36px) scale(.94)' }, { opacity: 1, transform: 'none' }], 560);
+      })
+      .then(function () { return wait(260); })
+      .then(function () { return fold('.fold.bot', 180, -1); })
+      .then(function () { return fold('.fold.top', -180, -2); })
+      .then(function () {
+        caption('Tucking it into the envelope…');
+        return play(q('.mini'), [{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(' + built.slide + 'px) scale(.97)' }], 720, { easing: 'cubic-bezier(.45, 0, .2, 1)' });
+      })
+      .then(function () {
+        caption('Sealing it with love…');
+        var flap = q('.env-flap');
+        setTimeout(function () { flap.style.zIndex = '4'; }, 270);
+        return play(flap, [{ transform: 'perspective(900px) rotateX(180deg)' }, { transform: 'perspective(900px) rotateX(0deg)' }], 560, { easing: 'cubic-bezier(.5, 0, .25, 1)' });
+      })
+      .then(function () {
+        return play(q('.env-seal'), [
+          { transform: 'scale(0) rotate(-30deg)', opacity: 0 },
+          { transform: 'scale(1.2) rotate(8deg)', opacity: 1, offset: 0.7 },
+          { transform: 'scale(1) rotate(0deg)', opacity: 1 }
+        ], 460);
+      })
+      .then(function () {
+        caption('Sending to ' + info.childName + '…');
+        bob = flyer.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)' }], { duration: 900, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out' });
+        return request;
+      })
+      .then(function (response) {
+        result = response;
+        if (bob) {
+          bob.cancel();
+        }
+        if (!response.ok || !response.data.wish) {
+          return play(stage, [{ opacity: 1 }, { opacity: 0 }], 320);
+        }
+        var avatar = q('.stage-avatar');
+        var from = flyer.getBoundingClientRect();
+        var to = avatar.getBoundingClientRect();
+        var dx = to.left + to.width / 2 - (from.left + from.width / 2);
+        var dy = to.top + to.height / 2 - (from.top + from.height / 2);
+        caption('Off it goes!');
+        return play(flyer, [
+          { transform: 'translate(0px, 0px) scale(1) rotate(0deg)', opacity: 1 },
+          { transform: 'translate(' + (-dx * 0.08).toFixed(0) + 'px, 28px) scale(1.04) rotate(4deg)', opacity: 1, offset: 0.2 },
+          { transform: 'translate(' + (dx * 0.7).toFixed(0) + 'px, ' + (dy * 0.62).toFixed(0) + 'px) scale(.5) rotate(-10deg)', opacity: 1, offset: 0.72 },
+          { transform: 'translate(' + dx.toFixed(0) + 'px, ' + dy.toFixed(0) + 'px) scale(.12) rotate(-16deg)', opacity: 0 }
+        ], 1150, { easing: 'cubic-bezier(.42, 0, .3, 1)' })
+          .then(function () {
+            caption('Delivered to ' + info.childName + ' 💌');
+            burst(stage, avatar, theme);
+            play(avatar, [{ transform: 'scale(1)' }, { transform: 'scale(1.2)', offset: 0.35 }, { transform: 'scale(1)' }], 650, { easing: 'ease-out' });
+            return wait(1250);
+          })
+          .then(function () { return play(stage, [{ opacity: 1 }, { opacity: 0 }], 400); });
+      })
+      .catch(function () {
+        return request.then(function (response) { result = response; });
+      })
+      .then(function () {
+        stage.remove();
+        document.body.classList.remove('is-sending');
+        return result;
+      });
+  };
+
   $('message').addEventListener('input', updateCounter);
 
   $('edit').addEventListener('click', function () {
@@ -396,42 +968,58 @@
     var name = $('name').value.trim();
     var message = $('message').value.trim();
     var error = $('form-error');
-    if (!name) {
-      error.textContent = 'Add your name so the family knows who the wish is from.';
-      error.hidden = false;
-      $('name').focus();
-      return;
-    }
     if (!message) {
       error.textContent = 'Write a few words first, or tap an idea.';
       error.hidden = false;
       $('message').focus();
       return;
     }
+    if (!name) {
+      error.textContent = 'Sign your letter so the family knows who it is from.';
+      error.hidden = false;
+      $('name').focus();
+      return;
+    }
     isSending = true;
     error.hidden = true;
     $('send').disabled = true;
-    $('send').textContent = 'Sending…';
     stored(NAME_STORE, name);
-    call({ action: 'send', name: name, message: message, card: selectedCard() })
+    var card = selectedCard();
+    var request = call({ action: 'send', name: name, message: message, card: card })
+      .catch(function () { return { ok: false, data: null }; });
+    var flow = reduceMotion || typeof document.body.animate !== 'function'
+      ? request
+      : sendAnimation(themeOf(card), { name: name, message: message, date: todayLabel() }, request);
+    flow
       .then(function (result) {
-        if (result.ok && result.data.wish) {
+        if (result && result.ok && result.data.wish) {
           showSent(result.data.wish);
           return;
         }
-        error.textContent = failureText(result.data);
+        error.textContent = failureText(result && result.data);
         error.hidden = false;
-      })
-      .catch(function () {
-        error.textContent = failureText(null);
-        error.hidden = false;
+        error.scrollIntoView({ block: 'center', behavior: 'smooth' });
       })
       .then(function () {
         isSending = false;
         $('send').disabled = false;
-        $('send').textContent = info.myWish ? 'Save my wish' : 'Send my wish';
       });
   });
+
+  window.addEventListener('resize', function () {
+    if (Math.abs(window.innerWidth - lettersWidth) > 40) {
+      paintLetters(true);
+    }
+  });
+
+  $('loading-art').innerHTML = envelopeBack(themeOf('balloons'));
+  paintEnvelopes();
+  paintLetters(false);
+
+  var fail = function () {
+    info = { status: 'error' };
+    showMessage('📶', 'Something went wrong', 'Check your connection, then reload this page.');
+  };
 
   if (!/^[a-f0-9]{32}$/.test(link)) {
     info = { status: 'missing' };
@@ -441,16 +1029,15 @@
 
   call({ action: 'info' })
     .then(function (result) {
-      info = result.ok ? result.data : { status: 'error' };
-      if (info.status === 'error') {
-        showMessage('📶', 'Something went wrong', 'Check your connection, then reload this page.');
+      if (!result.ok || !result.data || result.data.status === 'error') {
+        fail();
         return;
       }
+      info = result.data;
+      paintLetters(true);
       render();
     })
-    .catch(function () {
-      showMessage('📶', 'Something went wrong', 'Check your connection, then reload this page.');
-    });
+    .catch(fail);
 })();
 </script>
 </body>
