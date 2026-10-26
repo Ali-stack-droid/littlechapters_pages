@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Send a Birthday Wish</title>
+<meta name="description" content="Write a birthday wish for a little one in Little Chapters. No app or account needed.">
+<meta property="og:title" content="Send a birthday wish 🎂">
+<meta property="og:description" content="Write a birthday wish in Little Chapters. No app or account needed.">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --bg: #FFF8ED;
+    --surface: #FFFCF8;
+    --text: #20332A;
+    --muted: #55625B;
+    --line: #E6DDCF;
+    --accent: #285943;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DFE6E2;
+    --danger: #9B3B2E;
+    --danger-soft: #FBEDE9;
+    --shadow: 0 12px 32px rgba(32, 51, 42, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141A17;
+      --surface: #1C2420;
+      --text: #ECE7DE;
+      --muted: #AEB8B1;
+      --line: #2E3A33;
+      --accent: #8CCBA9;
+      --accent-ink: #10231A;
+      --accent-soft: #233229;
+      --danger: #F0A898;
+      --danger-soft: #3A2622;
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 48px; }
+  .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 650; letter-spacing: -0.02em; font-size: 18px; }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 32px; line-height: 1.2; margin: 28px 0 8px; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .hero-emoji { font-size: 44px; line-height: 1; margin-top: 28px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 20px; box-shadow: var(--shadow); }
+  label { display: block; font-weight: 600; font-size: 15px; margin: 0 0 8px; }
+  .field { margin-bottom: 20px; }
+  input[type=text], textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type=text]:focus, textarea:focus { border-color: var(--accent); }
+  textarea { min-height: 150px; resize: vertical; }
+  .hint { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .ideas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip {
+    font: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  .chip:active { transform: scale(.97); }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .card-option { position: relative; }
+  .card-option input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .card-face {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px 4px; border-radius: 16px; border: 2px solid transparent;
+    font-size: 13px; font-weight: 600; text-align: center;
+  }
+  .card-face .emoji { font-size: 26px; line-height: 1.1; }
+  .card-option input:checked + .card-face { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .card-option input:focus-visible + .card-face { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .theme-balloons { background: linear-gradient(150deg, #EAF2F7, #AFC9DC73); color: #3E5F78; }
+  .theme-cake { background: linear-gradient(150deg, #FBF0E6, #EFC6A073); color: #7F5530; }
+  .theme-stars { background: linear-gradient(150deg, #F1EDF6, #C7BADB73); color: #5B4B78; }
+  .theme-hearts { background: linear-gradient(150deg, #FBEDE9, #E9B8AC73); color: #874A3E; }
+  button.primary {
+    width: 100%; font: inherit; font-weight: 650; font-size: 17px;
+    color: var(--accent-ink); background: var(--accent);
+    border: 0; border-radius: 999px; padding: 16px; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(40, 89, 67, 0.25);
+  }
+  button.primary[disabled] { opacity: .55; cursor: default; box-shadow: none; }
+  button.link { font: inherit; color: var(--accent); background: none; border: 0; padding: 12px; cursor: pointer; text-decoration: underline; width: 100%; }
+  .error { background: var(--danger-soft); color: var(--danger); border-radius: 14px; padding: 12px 14px; font-size: 15px; margin-bottom: 16px; }
+  .letter { border-radius: 20px; padding: 20px; margin: 0 0 20px; }
+  .letter .to { font-weight: 650; margin: 0 0 8px; }
+  .letter .body { white-space: pre-wrap; margin: 0 0 12px; }
+  .letter .from { font-style: italic; margin: 0; }
+  .reply { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 14px; padding: 14px 16px; margin: 0 0 20px; }
+  .reply strong { display: block; margin-bottom: 4px; }
+  .note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 24px; }
+  .note a { color: var(--accent); }
+  .center { text-align: center; }
+  .spinner { width: 32px; height: 32px; margin: 96px auto; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 359px) {
+    .panel { padding: 16px; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 28px; }
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Little Chapters</div>
+
+  <div id="loading" class="spinner" role="status" aria-label="Loading"></div>
+
+  <section id="state-message" hidden>
+    <div class="hero-emoji" id="message-emoji" aria-hidden="true">🎂</div>
+    <h1 id="message-title"></h1>
+    <p class="lead" id="message-body"></p>
+  </section>
+
+  <section id="state-form" hidden>
+    <div class="hero-emoji" aria-hidden="true">🎂</div>
+    <h1 id="form-title"></h1>
+    <p class="lead" id="form-lead"></p>
+    <form id="wish-form" class="panel" novalidate>
+      <div id="form-error" class="error" role="alert" hidden></div>
+      <div class="field">
+        <label for="name">Your name</label>
+        <input id="name" type="text" maxlength="40" autocomplete="given-name" placeholder="e.g. Aunt Sara" required>
+        <div class="hint"><span>How the family will see you.</span></div>
+      </div>
+      <div class="field">
+        <label for="message">Your wish</label>
+        <textarea id="message" maxlength="500" required></textarea>
+        <div class="hint"><span>Need an idea? Tap one below.</span><span id="counter">0 / 500</span></div>
+        <div class="ideas" id="ideas"></div>
+      </div>
+      <div class="field">
+        <label id="card-label">Pick a card</label>
+        <div class="cards" role="radiogroup" aria-labelledby="card-label">
+          <label class="card-option"><input type="radio" name="card" value="balloons" checked><span class="card-face theme-balloons"><span class="emoji" aria-hidden="true">🎈</span>Balloons</span></label>
+          <label class="card-option"><input type="radio" name="card" value="cake"><span class="card-face theme-cake"><span class="emoji" aria-hidden="true">🎂</span>Cake</span></label>
+          <label class="card-option"><input type="radio" name="card" value="stars"><span class="card-face theme-stars"><span class="emoji" aria-hidden="true">⭐</span>Stars</span></label>
+          <label class="card-option"><input type="radio" name="card" value="hearts"><span class="card-face theme-hearts"><span class="emoji" aria-hidden="true">💗</span>Hearts</span></label>
+        </div>
+      </div>
+      <button class="primary" id="send" type="submit">Send my wish</button>
+    </form>
+  </section>
+
+  <section id="state-sent" hidden>
+    <div class="hero-emoji" aria-hidden="true">💌</div>
+    <h1 id="sent-title">Your wish is on its way</h1>
+    <p class="lead" id="sent-lead"></p>
+    <div id="sent-letter" class="letter">
+      <p class="to" id="sent-to"></p>
+      <p class="body" id="sent-body"></p>
+      <p class="from" id="sent-from"></p>
+    </div>
+    <div id="sent-reply" class="reply" hidden>
+      <strong id="sent-reply-title"></strong>
+      <span id="sent-reply-body"></span>
+    </div>
+    <button class="link" id="edit" type="button">Change my wish</button>
+  </section>
+
+  <p class="note">Your name and wish are shared only with this child's family in Little Chapters. <a href="privacy_policy.html">Privacy policy</a></p>
+</main>
+
+<script>
+(function () {
+  var API = 'https://tgzpvahddkxdsvboncpl.supabase.co/functions/v1/guest-wish';
+  var KEY_STORE = 'lc-guest-key';
+  var NAME_STORE = 'lc-guest-name';
+  var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  var link = new URLSearchParams(location.search).get('l') || '';
+  var info = null;
+  var isSending = false;
+  var memoryStore = {};
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var stored = function (key, value) {
+    try {
+      if (value === undefined) {
+        return localStorage.getItem(key);
+      }
+      localStorage.setItem(key, value);
+    } catch (error) {
+      if (value === undefined) {
+        return memoryStore[key] || null;
+      }
+      memoryStore[key] = value;
+    }
+    return value;
+  };
+
+  var guestKey = function () {
+    var key = stored(KEY_STORE);
+    if (key && /^[A-Za-z0-9_-]{16,64}$/.test(key)) {
+      return key;
+    }
+    var bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    key = btoa(String.fromCharCode.apply(null, bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    stored(KEY_STORE, key);
+    return key;
+  };
+
+  var dateOf = function (iso) {
+    var parts = iso.split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  };
+
+  var longDate = function (iso) {
+    return dateOf(iso).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+
+  var daysUntil = function (iso) {
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((dateOf(iso) - today) / 86400000);
+  };
+
+  var ordinal = function (value) {
+    var lastTwo = value % 100;
+    if (lastTwo >= 11 && lastTwo <= 13) {
+      return value + 'th';
+    }
+    return value + (['th', 'st', 'nd', 'rd'][value % 10] || 'th');
+  };
+
+  var turns = function (name, age, birthday) {
+    var days = daysUntil(birthday);
+    if (days === 0) {
+      return name + ' turns ' + age + ' today!';
+    }
+    if (days === 1) {
+      return name + ' turns ' + age + ' tomorrow!';
+    }
+    if (days > 1) {
+      return name + ' turns ' + age + ' on ' + WEEKDAYS[dateOf(birthday).getDay()] + '!';
+    }
+    return name + ' just turned ' + age + '!';
+  };
+
+  var ideasFor = function (name, age) {
+    return [
+      { label: 'Blessing', text: 'Happy ' + ordinal(age) + ' birthday, ' + name + '! May your heart always be full of joy, your days full of laughter and your life full of love. 🎂💛' },
+      { label: 'Best wishes', text: 'Dearest ' + name + ', wishing you the happiest of birthdays! May this year bring you good health, endless giggles and cuddles whenever you need them. 🎈' },
+      { label: 'God bless', text: 'Happy birthday, sweet ' + name + '! May God bless you with good health, a kind heart and a life full of happiness. 🙏✨' },
+      { label: 'Dreams', text: 'Happy birthday, ' + name + '! May all your little dreams grow big and come true. Sending you the biggest birthday hug. 🤗' }
+    ];
+  };
+
+  var show = function (id) {
+    ['loading', 'state-message', 'state-form', 'state-sent'].forEach(function (section) {
+      $(section).hidden = section !== id;
+    });
+    window.scrollTo(0, 0);
+  };
+
+  var showMessage = function (emoji, title, body) {
+    $('message-emoji').textContent = emoji;
+    $('message-title').textContent = title;
+    $('message-body').textContent = body;
+    show('state-message');
+  };
+
+  var call = function (body) {
+    return fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ link: link, guestKey: guestKey() }, body))
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        return { ok: response.ok, data: data };
+      });
+    });
+  };
+
+  var selectedCard = function () {
+    var picked = document.querySelector('input[name=card]:checked');
+    return picked ? picked.value : 'balloons';
+  };
+
+  var setCard = function (card) {
+    var input = document.querySelector('input[name=card][value="' + card + '"]');
+    if (input) {
+      input.checked = true;
+    }
+  };
+
+  var updateCounter = function () {
+    $('counter').textContent = $('message').value.length + ' / 500';
+  };
+
+  var showForm = function (wish) {
+    $('form-title').textContent = turns(info.childName, info.age, info.birthday);
+    $('form-lead').textContent = info.sharedBy && info.sharedBy !== 'Someone'
+      ? info.sharedBy + ' invited you to send ' + info.childName + ' a birthday wish. No app or account needed.'
+      : 'Send ' + info.childName + ' a birthday wish. No app or account needed.';
+    $('name').value = wish ? wish.name : (stored(NAME_STORE) || '');
+    $('message').value = wish ? wish.message : '';
+    setCard(wish ? wish.card : 'balloons');
+    $('send').textContent = wish ? 'Save my wish' : 'Send my wish';
+    $('form-error').hidden = true;
+    updateCounter();
+    var ideas = $('ideas');
+    ideas.innerHTML = '';
+    ideasFor(info.childName, info.age).forEach(function (idea) {
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = idea.label;
+      chip.addEventListener('click', function () {
+        $('message').value = idea.text;
+        updateCounter();
+        $('message').focus();
+      });
+      ideas.appendChild(chip);
+    });
+    show('state-form');
+  };
+
+  var showSent = function (wish) {
+    $('sent-letter').className = 'letter theme-' + wish.card;
+    $('sent-to').textContent = 'Dear ' + info.childName + ',';
+    $('sent-body').textContent = wish.message;
+    $('sent-from').textContent = 'With love, ' + wish.name;
+    $('sent-lead').textContent = info.childName + "'s family will see it in Little Chapters. Thank you for being part of the celebration!";
+    var hasReply = Boolean(wish.reply);
+    $('sent-reply').hidden = !hasReply;
+    if (hasReply) {
+      $('sent-reply-title').textContent = 'A reply from ' + (info.sharedBy && info.sharedBy !== 'Someone' ? info.sharedBy : "the family") + ' 💛';
+      $('sent-reply-body').textContent = wish.reply;
+    }
+    $('edit').hidden = hasReply || info.status !== 'open';
+    info.myWish = wish;
+    show('state-sent');
+  };
+
+  var render = function () {
+    switch (info.status) {
+      case 'open':
+        return info.myWish ? showSent(info.myWish) : showForm(null);
+      case 'not_yet':
+        return showMessage('🎈', info.childName + "'s birthday is coming", 'Wishes open on ' + longDate(info.opensOn) + '. Keep this link and come back then to send your wish.');
+      case 'closed':
+        return showMessage('🌙', 'Wishes are closed', 'Birthday wishes for ' + info.childName + ' are open for a week after the birthday. Thank you for thinking of them!');
+      case 'off':
+        return showMessage('🔒', 'This link was turned off', 'Ask the family for a new birthday wish link.');
+      default:
+        return showMessage('🔍', "We couldn't find this link", 'Check that you opened the whole link, or ask the family to send it again.');
+    }
+  };
+
+  var failureText = function (data) {
+    switch (data && data.error) {
+      case 'closed': return 'Wishes for this birthday are closed now.';
+      case 'replied': return 'The family already replied, so your wish can no longer be changed.';
+      case 'too_many': return 'Too many wishes from this phone. Please try again in an hour.';
+      case 'off': return 'This link was turned off by the family.';
+      case 'full': return 'This birthday already has all the wishes it can hold.';
+      case 'invalid': return (data.message || 'Please check your name and wish.');
+      default: return "We couldn't send your wish. Check your connection and try again.";
+    }
+  };
+
+  $('message').addEventListener('input', updateCounter);
+
+  $('edit').addEventListener('click', function () {
+    showForm(info.myWish);
+  });
+
+  $('wish-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (isSending) {
+      return;
+    }
+    var name = $('name').value.trim();
+    var message = $('message').value.trim();
+    var error = $('form-error');
+    if (!name) {
+      error.textContent = 'Add your name so the family knows who the wish is from.';
+      error.hidden = false;
+      $('name').focus();
+      return;
+    }
+    if (!message) {
+      error.textContent = 'Write a few words first, or tap an idea.';
+      error.hidden = false;
+      $('message').focus();
+      return;
+    }
+    isSending = true;
+    error.hidden = true;
+    $('send').disabled = true;
+    $('send').textContent = 'Sending…';
+    stored(NAME_STORE, name);
+    call({ action: 'send', name: name, message: message, card: selectedCard() })
+      .then(function (result) {
+        if (result.ok && result.data.wish) {
+          showSent(result.data.wish);
+          return;
+        }
+        error.textContent = failureText(result.data);
+        error.hidden = false;
+      })
+      .catch(function () {
+        error.textContent = failureText(null);
+        error.hidden = false;
+      })
+      .then(function () {
+        isSending = false;
+        $('send').disabled = false;
+        $('send').textContent = info.myWish ? 'Save my wish' : 'Send my wish';
+      });
+  });
+
+  if (!/^[a-f0-9]{32}$/.test(link)) {
+    info = { status: 'missing' };
+    render();
+    return;
+  }
+
+  call({ action: 'info' })
+    .then(function (result) {
+      info = result.ok ? result.data : { status: 'error' };
+      if (info.status === 'error') {
+        showMessage('📶', 'Something went wrong', 'Check your connection, then reload this page.');
+        return;
+      }
+      render();
+    })
+    .catch(function () {
+      showMessage('📶', 'Something went wrong', 'Check your connection, then reload this page.');
+    });
+})();
+</script>
+</body>
+</html>
